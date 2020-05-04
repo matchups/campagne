@@ -1,0 +1,21 @@
+<HTML>
+<HEAD>
+<TITLE>
+Campagne v1.1
+</TITLE>
+<link rel='stylesheet' href='styles.css'>
+</HEAD>
+<BODY>
+<form action='campagne.php' id='startform'>
+<label>Name: <input type=text name=name1 value=Alan /></label><br>
+<label>Score for two-cell city: <input type=number name=twocellscore min=2 max=4 step=2 value=2 /></label><br>
+<label>Field score for each city: <input type=number name=fieldcityscore min=3 max=4 step=1 value=3 /></label><br>
+<label>Debug: <input type=number name=debug min=0 max=2 value=1 /></label><br>
+<label>Lookahead: <input type=checkbox name=s_lookahead /></label><br>
+Algorithm:<select name='s_algorithm'>
+  <option value=O>original</option>
+  <option value=B>binary</option>
+  <option value=N>neural network</option>
+</select><br>
+<input type='submit' value='Start Game' id='submit'/>
+</form>

@@ -1,0 +1,35 @@
+table {
+  border-collapse: collapse;
+}
+
+table, th, td {
+  border: 1px solid black;
+}
+
+.debug {
+  position: fixed;
+}
+
+/* Control the left side */
+.left {
+  height: 95%;
+  top: 0;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  width: 69%;
+  background-color: white;
+  overflow-x: scroll;
+  overflow-y: scroll;
+}
+
+/* Control the right side */
+.right {
+  height: 100%;
+  position: fixed;
+  top: 0;
+  padding-top: 20px;
+  right: 0;
+  width: 28%;
+  background-color: #a0f0ff;
+  padding-left: 20px;
+}
