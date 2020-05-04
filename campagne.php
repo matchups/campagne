@@ -312,7 +312,8 @@ function drawBoard ($game, $playList) {
 		for ($column = $extent ['L'] - 1; $column <= $extent ['R'] + 1; $column++) {
 			echo "<td id='cell{$column}_$row'";
 			if ($cell = $game['board'][$column][$row]) {
-				echo " style='font-size: $sizepct%'>";
+				echo " style='font-size: $sizepct%;" . (is_numeric($who = $cell['marked']['new']) ?
+					" border:4px solid {$GLOBALS['game']['user'][$who]['color']};" : '') . "'>";
 				echo drawCell ($cell, false);
 			} else if ($countLetter = $playList ['cell'][$column][$row]) {
 				echo " onclick='clickToPlay(\"$column-$row\");' style='" . bigLetterStyle ($countLetter, $size) . "'>&nbsp;$countLetter&nbsp;";
@@ -345,8 +346,7 @@ function arraySerialize ($array, $delims = false, $showKey = false) {
 
 function drawCell ($cell, $numbers, $bright = false) {
 	$ret = '';
-	$fw = $cell['marked']['new'] ? 'font-weight: bold;' : '';
-	$fw .= $cell['marked']['complete'] ? 'font-style: italic;' : '';
+	$fw = $cell['marked']['complete'] ? 'font-style: italic;' : '';
 	$special = $cell['S'];
 	for ($y = 0; $y < 5; $y++) {
 		for ($x = 0; $x < 5; $x++) {
@@ -516,6 +516,7 @@ function drawChoices ($game, $playList) {
 	} else {
 		echo "allowed = '';";
 	}
+	$sizepct = intval ($game['size'] * 100);
 	echo "
 	// remove options
 	var meeple = document.getElementById('meeple');
@@ -562,8 +563,10 @@ function drawChoices ($game, $playList) {
 		cell.innerHTML = newCard.replace(/[A-Z][0-9x]&/g, function (entity) {
 			return entity.substr (0, 1) + '&';
 		});
+
+		cell.style = 'font-size:$sizepct%; border:4px solid #A0A0A0'; // lightish gray
 		document.getElementById('submit').focus();
-		document.getElementById('lastmeeple1').innerHTML = value ? '&#x1F9CE' : '&#x1F9CD';
+		document.getElementById('lastmeeple1').innerHTML = value ? '&#x1F9CE' : '&#x1F9CD'; // Meeple standing and sitting emoji
 	}
 
   function clickToPlay(newLocation) {
@@ -671,6 +674,8 @@ function htmlPad ($string, $length, $type) {
 }
 
 function makePlay ($game, $play, $mode) {
+	$who = $game['who'];
+
 	// identify the play
 	if ($location = $play['location']) {
 		$x = explode ('-', $location)[0];
@@ -686,7 +691,7 @@ function makePlay ($game, $play, $mode) {
 	// play card
 	$pending = $game['pending'];
 	$game['board'][$x][$y] = rotate ($game['cards'][$pending], $play ['orient']);
-	$game['board'][$x][$y]['marked']['new'] = true;
+	$game['board'][$x][$y]['marked']['new'] = $who;
 	$game['marked']["$x-$y"] = true;
 	$pendingOriginal = $pending;
 	do {
@@ -710,7 +715,6 @@ function makePlay ($game, $play, $mode) {
 	} while ($continue);
 
   // next player
-	$who = $game['who'];
 	$game['who'] = isset ($game['cards']) ? (($who + 1) % $game ['playercount']) : -1;
 
 	// handle meeples
@@ -955,8 +959,6 @@ function complete (&$game, $points, $meeples) {
 		}
 
 		$game['message'][] = completeMessage ($info['entity'], true, $basex, $basey, $points, $best);
-	} else if ($_GET['debug'] > 0) {
-		$game['message'][] = "DEBUG: bogus completion around $x,$y.  Points=$points.  Details=$dbg.";
 	}
 }
 
@@ -1053,10 +1055,7 @@ function finalScore (&$game) {
 					if (is_numeric($who)) {
 						$blankArray = array ();
 						$info = checkComplete ($board, $x, $y, $entity, $blankArray, true);
-						//@@ comment ("Processing $entity at $x,$y");
-						//@@ comment ($info);
 						if ($data = entityInfo ($game, $info['location'], false)) {
-							//@@ comment ($data);
 							// Make sure we have at least a tie for most meeples and we haven't already processed this entity elsewhere
 							if ($data['most'] == $data['count'][$who]  &&  $x == $data['pos'][$who]['x']  &&  $y == $data['pos'][$who]['y']) {
 								$score[$who] += $info ['count'];
