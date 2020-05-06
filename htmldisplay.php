@@ -1,14 +1,17 @@
 <?php
 class HTMLDisplay {
+	private $meepleUnicode = '&#x1F9CD;';
+	private $meepleUnicodeSitting = '&#x1F9CE;';
+
 	public function drawPlayers ($game) {
 		echo "<font face='Courier New'>";
 
 		for ($userNum = 0; $userInfo = $game['user'][$userNum]; $userNum++) {
 			echo "<font color='{$userInfo['color']}'>" . htmlPad ($userInfo['score'], 3, STR_PAD_LEFT) .
 			 	'&nbsp;' . htmlPad (substr ($userInfo['name'], 0, 10), 10, STR_PAD_RIGHT) .
-				'&nbsp;' . str_repeat ('&#x1F9CD;', $userInfo['meeples'] - 1);
+				'&nbsp;' . str_repeat ($this->meepleUnicode, $userInfo['meeples'] - 1);
 			if ($userInfo['meeples']) {
-				echo "<span id='lastmeeple$userNum'>&#x1F9CD</span>"; // last meeple sometimes sits down
+				echo "<span id='lastmeeple$userNum'>{$this->meepleUnicode}</span>"; // last meeple sometimes sits down
 			}
 			echo "</font><br>\n";
 		}
@@ -236,7 +239,7 @@ class HTMLDisplay {
 
 			cell.style = 'font-size:$sizepct%; border:4px solid #A0A0A0'; // lightish gray
 			document.getElementById('submit').focus();
-			document.getElementById('lastmeeple1').innerHTML = value ? '&#x1F9CE' : '&#x1F9CD'; // Meeple standing and sitting emoji
+			document.getElementById('lastmeeple1').innerHTML = value ? '{$this->meepleUnicodeSitting}' : '{$this->meepleUnicode}'; // Meeple standing and sitting emoji
 		}
 
 	  function clickToPlay(newLocation) {
