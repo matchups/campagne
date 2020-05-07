@@ -7,31 +7,24 @@ Campagne v1.0
 </HEAD>
 <BODY>
 <?php
+
 // Pull in Amazon Web Services
 require '/usr/home/adf/public_html/campagne/vendor/autoload.php';
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
-include "/usr/home/adf/credentials.php";
 
 include 'strategy.php';
 include 'htmldisplay.php';
 include 'game.php';
-try {
-	$s3 = new Aws\S3\S3Client([
-    'version' => 'latest',
-    'region' => 'us-east-1',
-    'credentials' => array(
-      'key' => AWS_KEY,
-      'secret'  => AWS_SECRET
-    )
-  ]);
-  $bucket = 'campagne.8wheels.org';
+include 'aws.php';
 
+try {
 	$displayer = new HTMLDisplay;
 	$gamer = new Campagne;
+	$saver = new AWS;
 
 	if ($gameID = $_GET['id']) {
-		$game = readGame ($gameID, $_GET['count']);
+		$game = $saver->readGame ($gameID, $_GET['count']);
 		$game['objects']['gamer'] = $gamer;
 		switch ($_GET['action']) {
 		case 'dump':
@@ -80,7 +73,7 @@ try {
 		$displayer->showMessages ($game);
 		$displayer->drawPlayers ($game);
 	}
-	saveGame ($game, $gameID);
+	$saver->saveGame ($game, $gameID);
 } catch (CampException $e) {
 	echo "<font color=red>$e</red>";
 	comment ($e->getDetails());
@@ -116,27 +109,6 @@ function comment ($string) {
 		echo $string;
 	}
 	echo " -->";
-}
-
-function readGame ($gameID, $count) {
-	return ($ret = json_decode ($GLOBALS['s3']->getObject([
-		'Bucket' => $GLOBALS['bucket'],
-		'Key' => $key = gameKeyID ($gameID, $count)
-	])['Body'], true)) ? $ret :
-			throwException ("Unable to access game data", "$gameID/$count -> $key");
-}
-
-function saveGame ($game, $gameID) {
-	$GLOBALS['s3']->putObject([
-    'Bucket' => $GLOBALS['bucket'],
-    'Key' => gameKeyID ($gameID, count ($game['cards'])),
-    'Body' => json_encode ($game)
-  ]);
-}
-
-function gameKeyID ($gameID, $count) {
-	$count = substr ($count + 100, 1); // add a leading zero if needed
-	return "game.{$gameID}_$count.json";
 }
 
 function darker ($color) {
