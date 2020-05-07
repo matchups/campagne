@@ -1,14 +1,14 @@
 <?php
 class HTMLDisplay {
-	private $meepleUnicode = '&#x1F9CD;';
-	private $meepleUnicodeSitting = '&#x1F9CE;';
+	protected $meepleUnicode = '&#x1F9CD;';
+	protected $meepleUnicodeSitting = '&#x1F9CE;';
 
 	public function drawPlayers ($game) {
 		echo "<font face='Courier New'>";
 
 		for ($userNum = 0; $userInfo = $game['user'][$userNum]; $userNum++) {
-			echo "<font color='{$userInfo['color']}'>" . htmlPad ($userInfo['score'], 3, STR_PAD_LEFT) .
-			 	'&nbsp;' . htmlPad (substr ($userInfo['name'], 0, 10), 10, STR_PAD_RIGHT) .
+			echo "<font color='{$userInfo['color']}'>" . $this->htmlPad ($userInfo['score'], 3, STR_PAD_LEFT) .
+			 	'&nbsp;' . $this->htmlPad (substr ($userInfo['name'], 0, 10), 10, STR_PAD_RIGHT) .
 				'&nbsp;' . str_repeat ($this->meepleUnicode, $userInfo['meeples'] - 1);
 			if ($userInfo['meeples']) {
 				echo "<span id='lastmeeple$userNum'>{$this->meepleUnicode}</span>"; // last meeple sometimes sits down
@@ -64,7 +64,7 @@ class HTMLDisplay {
 						" border:4px solid {$GLOBALS['game']['user'][$who]['color']};" : '') . "'>";
 					echo $this->drawCell ($cell, false);
 				} else if ($countLetter = $playList ['cell'][$column][$row]) {
-					echo " onclick='clickToPlay(\"$column-$row\");' style='" . bigLetterStyle ($countLetter, $size) . "'>&nbsp;$countLetter&nbsp;";
+					echo " onclick='clickToPlay(\"$column-$row\");' style='" . $this->bigLetterStyle ($countLetter, $size) . "'>&nbsp;$countLetter&nbsp;";
 				} else if (isset ($game['board']['dead'][$column][$row])  &&  count ($game['cards'])){
 					echo " style='background-color:#E0E0E0'>";
 				} else if ($_GET['debug'] > 0) {
@@ -78,13 +78,14 @@ class HTMLDisplay {
 		echo "</table></font></div>\n";
 	} // end drawBoard
 
-	function drawChoices ($game, $playList) {
+	public function drawChoices ($game, $playList) {
 		$thisCell = $game['cards'][$game['pending']];
 		echo "<table><tr><td><font face='Courier New' color=blue id=current></font></td></tr></table><P>
 			<script>
 			cardWithNum = new Array(4);\n";
 		for ($dirNumber = 0; $dirNumber  < 4; $dirNumber++) {
-			echo "cardWithNum[$dirNumber] = \"" . str_replace ("\n", '', $this->drawCell (rotate ($thisCell, substr ('NEWS', $dirNumber, 1)), true, true)) . "\";\n";
+			echo "cardWithNum[$dirNumber] = \"" . str_replace ("\n", '', $this->drawCell
+					($game['objects']['gamer']->rotate ($thisCell, substr ('NEWS', $dirNumber, 1)), true, true)) . "\";\n";
 		}
 		echo "</script>";
 
@@ -120,9 +121,9 @@ class HTMLDisplay {
 		echo "<script>
 		function locChange() {
 			if (prevHTML.match (/;[A-Z][A-Z]/)) {
-				prevCell.style = '" . bigLetterStyle ('XX', $game['size']) . "';
+				prevCell.style = '" . $this->bigLetterStyle ('XX', $game['size']) . "';
 			} else {
-				prevCell.style = '" . bigLetterStyle ('X', $game['size']) . "';
+				prevCell.style = '" . $this->bigLetterStyle ('X', $game['size']) . "';
 			}
 			prevCell.innerHTML = prevHTML;
 			var loc = document.getElementById ('location');
@@ -132,7 +133,7 @@ class HTMLDisplay {
 			  prevCell = cell;
 			  prevHTML = prevCell.innerHTML;
 		  }
-			cell.style = '" . bigLetterStyle ('!', $game['size']) . "';
+			cell.style = '" . $this->bigLetterStyle ('!', $game['size']) . "';
 
 			switch (lvalue) {";
 			foreach ($playList ['count'] as $cellInfo) {
@@ -260,14 +261,14 @@ class HTMLDisplay {
 		</script>\n";
 	}
 
-	function showMessages (&$game) {
+	public function showMessages (&$game) {
 		foreach ($game['message'] as $msg) {
 			echo "$msg<BR>";
 		}
 		unset ($game['message']);
 	}
 
-	function ShowOptions ($game) {
+	public function ShowOptions ($game) {
 		echo "<p><a href='index.html'>Restart</a>&nbsp;&nbsp;";
 		$count = count ($game['cards']);
 		$gameID = $GLOBALS['gameID'];
@@ -352,6 +353,17 @@ class HTMLDisplay {
 		}
 		$ret .= "</span>";
 		return $ret;
+	}
+
+	protected function htmlPad ($string, $length, $type) {
+		return str_replace (' ', '&nbsp;', str_pad($string, $length, ' ', $type));
+	}
+
+	protected function bigLetterStyle ($label, $base) {
+		$fg = '#000000';
+		$bg = '#E0E0E0';
+		$size = intval (($label == '!' ? 100 : (strlen ($label) == 1 ? 250 : 200)) * $base);
+		return "text-align:center; vertical-align:center; font-size: $size%; color:$fg; background-color:$bg";
 	}
 } // end class HTMLDisplay
 ?>

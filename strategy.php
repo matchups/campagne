@@ -1,21 +1,22 @@
 <?php
 function selectPlay ($game) {
 	$who = $game['who'];
+	$gamer = $game['objects']['gamer'];
 	$topScore = -999;
 	$card = $game['cards'][$game['pending']];
 	if ($game['user'][$who]['meeples']) {
-		$entityList = entityList ($card, true);
+		$entityList = $gamer->entityList ($card, true);
 	} else {
 		$entityList = array ('-' => true);
 	}
-	foreach (getPlayList ($game)['play'] as $play) {
+	foreach ($gamer->getPlayList ($game)['play'] as $play) {
 		foreach ($entityList as $entity => $dummy) {
 			$playWith = $play;
 			if ($entity != '-'  &&  !strpos ($entity, 'x')  &&  !$play['occupied'][$entity]) {
 				$playWith ['meeple'] = $entity;
 			}
-			$score = evaluate (makePlay ($game, $playWith, 'score'), $who);
-			$msg = playName ($playWith) . '=' . number_format ($score, 2);
+			$score = evaluate ($gamer->makePlay ($game, $playWith, 'score'), $who);
+			$msg = $gamer->playName ($playWith) . '=' . number_format ($score, 2);
 			$debug = (rand(0, 20) == 13);
 			if ($score > $topScore) {
 				$msg .= ' $TOP$ ';
@@ -63,7 +64,7 @@ class Strategizer {
 	}
 
   public function evaluatePlayer ($game, $who) {
-		foreach (finalScore ($game) as $scoreWho => $score) {
+		foreach ($game['objects']['gamer']->finalScore ($game) as $scoreWho => $score) {
 			$this->addMsg ("\n$scoreWho raw=$score");
 			$value = array_fill (1, 8, 0);
 			$value[1] = $game['user'][$scoreWho]['meeples'];
@@ -90,7 +91,7 @@ class Strategizer {
 
 	protected function processEntity ($game, $scoreWho, $x, $y, $entity, &$value, &$visited) {
 		$blankArray = array();
-		$info = checkComplete ($game['board'], $x, $y, $entity, $blankArray, false); //!! don't do same one twice
+		$info = $game['objects']['gamer']->checkComplete ($game['board'], $x, $y, $entity, $blankArray, false); //!! don't do same one twice
 		$already = false;
 		$most = 0;
 		unset ($count);
